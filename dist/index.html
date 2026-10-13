@@ -330,18 +330,12 @@
       Under sparse final-task rewards, temporal-difference updates propagate information about success backward through successive states. The critic must learn accurate next-state values before these targets can reliably supervise earlier state-action pairs.
      </p>
 <div aria-label="A temporal-difference target is the immediate reward plus the discounted next-state value" class="equation" data-tex="y = r + \gamma Q(s^{\prime},a^{\prime})"></div>
-<p>
-      Intermediate subgoals provide supervision at multiple temporal resolutions. A grasp can be completed before a placement, and both can precede full-task success. VaDar uses each replay transition to predict all of these subgoal returns, with a separate temporal-difference target for each prediction.
-     </p>
-<p>All of these predictions share a critic backbone. Features learned from intermediate targets can therefore also help predict final-task returns. We examine this proposed transfer in the <a href="#implicit-bellman">implicit Bellman-backup section</a>.</p>
+<p>Intermediate subgoals provide supervision at multiple temporal resolutions. A grasp can be completed before a placement, and both can precede full-task success. VaDar predicts all of these subgoal returns, with a separate temporal-difference target for each prediction.</p>
+<p>Each subgoal reward remains sparse, but every sampled transition contributes a loss for every subgoal value. The predictions share network parameters, making features learned from intermediate targets available to the final-task prediction.</p>
 </div>
 <div class="reading">
-<p>Each subgoal reward remains sparse. The supervision is dense across subgoals because every sampled transition contributes a loss for every subgoal value.</p>
-<p>
-      We examine the contribution of intermediate targets with
-      <a href="#analysis">
-       Last-Q</a>, which retains all-subgoal critic supervision but uses only the final-subgoal value for policy extraction.
-     </p>
+
+<p>To examine whether this intermediate supervision improves the final-task critic, we introduce <a href="#analysis">Last-Q</a>: it retains all-subgoal critic supervision but uses only the final-subgoal value for policy extraction.</p>
 </div>
 </section>
 <section class="section" id="method">
@@ -493,7 +487,7 @@
      </figcaption>
 </figure><details class="results-rollouts"><summary>View successful rollouts</summary><div aria-label="Successful rollouts" class="success-gallery policy-gallery"><figure class="success-card"><h3>PreSoakPan</h3><video aria-label="PreSoakPan successful rollout" controls="" muted="" playsinline="" poster="assets/presoakpan-success.jpg" preload="metadata"><source src="assets/presoakpan-success.mp4" type="video/mp4"/></video><label class="video-speed-label">Playback speed <select data-video-speed=""><option selected="" value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label></figure><figure class="success-card"><h3>ArrangeTea</h3><video aria-label="ArrangeTea successful trained-policy rollout" controls="" muted="" playsinline="" poster="assets/arrangetea-policy-success.jpg" preload="metadata"><source src="assets/arrangetea-policy-success.mp4" type="video/mp4"/></video><label class="video-speed-label">Playback speed <select data-video-speed=""><option selected="" value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label></figure><figure class="success-card"><h3>ToolHang</h3><video aria-label="ToolHang successful trained-policy rollout" controls="" muted="" playsinline="" poster="assets/toolhang-policy-success.jpg" preload="metadata"><source src="assets/toolhang-policy-success.mp4" type="video/mp4"/></video><label class="video-speed-label">Playback speed <select data-video-speed=""><option selected="" value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label></figure></div></details>
 <div class="reading">
-<p>We begin with behavior-cloned policies that have low success rates, then fine-tune them with reinforcement learning. Within each comparison, all methods use the same base algorithm for policy extraction. The baselines include hierarchical and implicit hierarchical goal conditioning, dense preference rewards, and the sparse-reward base algorithm.</p>
+<p>We pretrain each method by behavior cloning, stopping at a low success rate so that all methods begin online fine-tuning from a comparable starting point. Within each comparison, all methods use the same base algorithm for policy extraction. The baselines include hierarchical and implicit hierarchical goal conditioning, dense preference rewards, and the sparse-reward base algorithm.</p>
 <p>
       With OGPO on RoboCasa, VaDar is the only method in this comparison to converge on LoadDishwasher. On PreSoakPan, it reaches nearly twice the success rate of the strongest baseline, implicit hierarchical goal conditioning.
      </p>
@@ -598,14 +592,9 @@
 <figcaption>Success rates for critic-guided action selection with a frozen policy. The dashed line marks the unsteered policy’s success rate. Gains are clearest on ArrangeTea and ToolHang; improvements on PreSoakPan are smaller.</figcaption>
 </figure>
 <div class="reading">
-<p>We also isolate critic quality by holding a behavior-cloned policy fixed throughout training and evaluation. The critic learns to select among actions proposed by that policy.</p>
-<p>
-      Following
-      <a href="https://arxiv.org/abs/2507.07969">
-       Q-chunking
-      </a>
-      , we sample candidate action chunks from the frozen policy and execute the one with the highest critic value. We train the VaDar critic and a Sparse critic, supervised only by final-task rewards, on the same demonstrations and frozen-policy rollouts. With four candidates, VaDar improves ArrangeTea success from 23% to 55% and ToolHang from 32% to 77%; the Sparse critic reaches 23% and 44%, respectively.
-     </p>
+<p>We hypothesize that VaDar’s gains come in part from learning a better critic through denser subgoal supervision. To isolate critic quality from policy learning, we fix a behavior-cloned policy and update only the critic.</p>
+<p>Following <a href="https://arxiv.org/abs/2507.07969">Q-chunking</a>, we use best-of-<span data-tex="N"></span> steering: the frozen policy proposes <span data-tex="N"></span> candidate action chunks, and the critic selects the highest-valued candidate. We compare VaDar and Sparse critics trained on the same demonstrations and frozen-policy rollouts. The Sparse critic receives supervision only from final-task rewards.</p>
+<p>With four candidates, the VaDar critic increases ArrangeTea success from 23% to 55% and ToolHang success from 32% to 77%, compared with 23% and 44% for the Sparse critic. Gains on PreSoakPan are smaller. These results support the benefit of subgoal supervision for critic learning independently of policy updates.</p>
 </div>
 <div class="steering-stats">
 <article>
@@ -671,17 +660,18 @@
      Mean success at 280K critic-training environment steps, with four candidate action chunks (N = 4). The experiment uses three seeds, each evaluated on 96 episodes.
     </p>
 <div class="reading">
-<p>The improved action selection supports the benefit of subgoal supervision for critic learning independently of policy updates. This steering experiment uses subgoal-completion indicators at inference to compute next-future weights. The policies learned in the main experiments require no such indicators.</p>
+<p>This steering experiment uses subgoal-completion indicators at inference to compute next-future weights. The policies learned in the main experiments require no such indicators.</p>
 </div>
 </section>
 <section class="section" id="implicit-bellman">
-<div class="reading"><p class="eyebrow">07 / Implicit Bellman backup</p><h2>An implicit Bellman-backup view of dense critic supervision.</h2></div>
+<div class="reading"><p class="eyebrow">07 / Implicit Bellman backup</p><h2>A hypothetical mechanism: implicit Bellman backup.</h2></div>
 <figure class="wide-figure bellman-figure"><a aria-label="Enlarge the implicit Bellman backup diagram" href="assets/implicit-bellman.png" rel="noopener" target="_blank"><img alt="One state-action transition supervises several subgoal predictions; their TD losses update the same shared critic representation." height="816" loading="lazy" src="assets/implicit-bellman.png" width="792"/></a><figcaption>All-subgoal TD targets update shared critic representations.</figcaption></figure>
 <div class="reading">
-<p>The steering experiment shows better action selection with a fixed policy, while Last-Q shows better learning when only the final-subgoal value trains the policy. We hypothesize that intermediate targets help by training shared features useful for predicting final-task returns.</p>
-<p>With sparse final-task rewards, one-step TD learning propagates the reward signal backward through successive bootstrapped targets. For a fixed policy, the classical Bellman recursion is</p>
+<p>The frozen-policy experiments show that subgoal supervision improves action selection independently of policy updates. Together with Last-Q, they motivate a further question: how can intermediate subgoal targets improve value predictions for the final task?</p>
+<p>For a fixed policy, the classical Bellman recursion is</p>
 <div aria-label="The Bellman recursion" class="equation" data-tex="Q^\pi(s,a)=r(s,a)+\gamma\,\mathbb{E}_{s',a'}[Q^\pi(s',a')]"></div>
-<p>A state far from task completion may already be close to an intermediate subgoal. Predicting this nearer outcome can train useful features before the final-task value is accurate. VaDar supervises every subgoal prediction at each transition, and their shared network parameters make these features available to the final-subgoal prediction.</p>
+<p>With sparse final-task rewards, one-step TD learning propagates the reward signal backward through successive bootstrapped targets. Function approximation can generalize across states, but the final-task reward alone provides little direct supervision for learning representations of intermediate progress.</p>
+<p>VaDar supervises every subgoal prediction at each sampled transition. These targets span multiple temporal resolutions: a state far from task completion may already be close to an intermediate subgoal. We speculate that predicting these nearer outcomes trains useful features before the final-task value is accurate. Because the predictions share network parameters, these features are also available to the final-subgoal prediction.</p>
 <p>We hypothesize that shared representations allow supervision at shorter horizons to inform value prediction at longer horizons. We refer to this proposed mechanism as an <a href="assets/vadar-paper.pdf"><em>implicit Bellman backup</em></a>. The Last-Q comparison provides evidence for this hypothesis: intermediate targets improve learning even though only the final-subgoal value enters policy extraction.</p>
 </div></section><section class="section" id="multi-objective">
 <div class="reading">
@@ -758,9 +748,7 @@
       Extensions beyond sequential subgoals.
      </h2>
 <p>VaDar also supports subgoals arranged in a directed acyclic graph. The training labels need not come from simulator state: on the RoboCasa PreSoakPan task, a vision-language model supplies labels that yield similar final success to oracle labels, with a modest change in sample efficiency.</p>
-<p>
-      We still specify the subgoal structure in advance. Extending the method to continuous or combinatorially large goal spaces, including image- and language-described goals, remains open.
-     </p>
+<p>VaDar assumes a fixed subgoal structure. Extending the method to continuous or combinatorially large goal spaces, including goals described by images or text, remains open.</p>
 <a class="text-link" download="vadar-paper.pdf" href="assets/vadar-paper.pdf">
       Download Paper
      </a>
