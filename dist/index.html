@@ -468,7 +468,7 @@
 <p>
       In ArrangeTea, current-myopic extraction can favor a kettle placement that obstructs the mug. Future-subgoal values account for the effect of that placement on subsequent task completion.
      </p>
-<p>The animation follows the ToolHang task from the Robomimic suite. The robot must grasp a frame and insert it into a stand before grasping and hanging a wrench. During frame insertion, next-future uses the wrench-grasping and wrench-hanging values. Both later subgoals require the frame to stay inserted. The critic still learns the insertion value, although that value does not enter the policy update at this stage.</p>
+<p>In the Robomimic ToolHang task shown above, inserting the frame into the stand is a prerequisite for hanging the wrench. When insertion is the current subgoal, next-future trains the policy using the wrench-grasping and wrench-hanging values, so the insertion must support these later steps. The insertion value still receives its own TD supervision but is excluded from the policy objective at this stage.</p>
 <p>A future-subgoal value evaluates the current state and action, so the wrench-hanging value can favor a frame insertion needed for later success. Next-future weighting thus gives the policy a reason to complete the current subgoal without optimizing its value directly.</p>
 </div>
 <div class="reading after-demo">
