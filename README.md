@@ -2,7 +2,7 @@
 
 Website for **VaDar: Implicit Goal Conditioning via Value Disaggregation**.
 
-Live site: https://shashwatsaxena13.github.io/vadar-site/
+Live site: https://simchowitzlabpublic.github.io/vadar-site/
 
 ## Editing
 
