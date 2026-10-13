@@ -191,7 +191,7 @@
 </div>
 </div>
 <div class="reading">
-<p>The ArrangeTea task in the RoboCasa suite requires placing a kettle and a mug on a tray, then closing the cabinet. In the rollout above, the policy places the kettle on the tray in a position that obstructs the subsequent mug placement. The “placing the kettle” subgoal is complete, but attempting to place the mug causes a collision that knocks the kettle off the counter.</p>
+<p>The ArrangeTea task in the RoboCasa suite requires placing a kettle and a mug on a tray, then closing the cabinet. In the rollout above, the policy places the kettle on the tray in a position that obstructs the subsequent mug placement. The “placing the kettle” subgoal is complete, but attempting to place the mug causes a collision that knocks the kettle off the counter. In the RoboCasa PreSoakPan task, the policy places the pan in the sink in a position that prevents stable placement of the sponge. Both failure cases result from over-optimizing for the current subtask.</p>
 <p>Both implicit and explicit hierarchical goal conditioning run into a common failure mode: <em>overly myopic policy exploitation</em>. Both methods update the policy against the critic of the currently active subgoal alone. As a result, the policy is rewarded for completing the current subgoal without accounting for how its manner of completion affects subsequent subtasks.</p>
 </div>
 <div class="reading">
