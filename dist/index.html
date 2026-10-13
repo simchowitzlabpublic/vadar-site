@@ -463,26 +463,13 @@
      </p>
 </div>
 <div class="reading">
-<p>The critic learns every subgoal value; the weighting scheme determines which values train the policy. <strong>Current-myopic</strong> uses only the first unfinished subgoal. <strong>Current-future</strong> includes that subgoal and all later ones. Our default, <strong>next-future</strong>, uses only the later values, except at the final subgoal, where it keeps the final value.</p>
+<p>VaDar trains the critic to predict a value for every subgoal. To train the policy, we combine these predictions into a single objective:</p>
 <div aria-label="Aggregate action value equals the sum of weighted subgoal values" class="equation" data-tex="Q_{\mathrm{agg}}(s,a)=\sum_{g\in\mathcal{G}}w_g Q(s,a,g)"></div>
-<p>
-      In ArrangeTea, current-myopic extraction can favor a kettle placement that obstructs the mug. Future-subgoal values account for the effect of that placement on subsequent task completion.
-     </p>
-<p>In the Robomimic ToolHang task shown above, inserting the frame into the stand is a prerequisite for hanging the wrench. When insertion is the current subgoal, next-future trains the policy using the wrench-grasping and wrench-hanging values, so the insertion must support these later steps. The insertion value still receives its own TD supervision but is excluded from the policy objective at this stage.</p>
-<p>A future-subgoal value evaluates the current state and action, so the wrench-hanging value can favor a frame insertion needed for later success. Next-future weighting thus gives the policy a reason to complete the current subgoal without optimizing its value directly.</p>
-</div>
-<div class="reading after-demo">
-<p>
-      We apply the base algorithm's policy loss to the weighted sum, using OGPO, FQL, or SAC. Subgoal information determines the weights during training. The deployed policy takes only the state, with no subgoal selector or completion labels.
-     </p>
-<details class="technical-note">
-<summary>
-       Critic update and completed subgoals
-      </summary>
-<p>
-       For each replay transition, we compute a reward and temporal-difference target for every subgoal, then sum the critic losses. VaDar clips the targets to cap values for completed subgoals, whose completion reward would otherwise accumulate. See the paper for the clipping rule and the extension from sequential subgoals to a directed acyclic graph.
-      </p>
-</details>
+<p>We compare three weighting schemes. <strong>Current-myopic</strong> uses only the first unfinished subgoal. <strong>Current-future</strong> includes that subgoal and all later ones. <strong>Next-future</strong>, our default, uses only the later subgoals. When only the final subgoal remains, it uses the final value.</p>
+<p>Why exclude the current subgoal? An action can complete one step while making the rest of the task harder. Optimizing only for that step can reward such actions. Future-subgoal values instead evaluate the action’s consequences for later completion.</p>
+<p>These values score the action the robot is considering <strong>now</strong>. They can therefore guide the robot through the current step, even when its value is excluded from the policy objective. The aim is to complete each step in a way that allows the remaining steps to succeed.</p>
+<p>All subgoal values still receive critic supervision. The weights determine only which values enter the policy update. We use their weighted sum with OGPO, FQL, or SAC; the deployed policy takes only the state and requires no subgoal information.</p>
+<details class="technical-note"><summary>Critic update and completed subgoals</summary><p>Each replay transition supplies a separate reward and temporal-difference target for every subgoal. We sum these losses to train the shared critic and clip targets to cap values for completed subgoals. The paper gives the clipping rule and the extension to subgoals arranged in a directed acyclic graph.</p></details>
 </div>
 </section>
 <section class="section tinted" id="results">
