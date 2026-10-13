@@ -695,7 +695,7 @@
 <p>With sparse final-task rewards, one-step TD learning propagates the reward signal backward through successive bootstrapped targets. For a fixed policy, the classical Bellman recursion is</p>
 <div aria-label="The Bellman recursion" class="equation" data-tex="Q^\pi(s,a)=r(s,a)+\gamma\,\mathbb{E}_{s',a'}[Q^\pi(s',a')]"></div>
 <p>A state far from task completion may already be close to an intermediate subgoal. Predicting this nearer outcome can train useful features before the final-task value is accurate. VaDar supervises every subgoal prediction at each transition, and their shared network parameters make these features available to the final-subgoal prediction.</p>
-<p>We call this proposed transfer an <em>implicit Bellman backup</em>: learning from shorter-horizon targets may help the critic learn dependencies across stages of the task. Last-Q and frozen-policy steering support this interpretation, but do not establish extra Bellman backups within a forward pass or a guaranteed reduction in TD updates. See <a href="assets/vadar-paper.pdf">Section 6.4 of the paper</a> for the full discussion.</p>
+<p>We hypothesize that shared representations allow supervision at shorter horizons to inform value prediction at longer horizons. We refer to this proposed mechanism as an <a href="assets/vadar-paper.pdf"><em>implicit Bellman backup</em></a>. The Last-Q comparison provides evidence for this hypothesis: intermediate targets improve learning even though only the final-subgoal value enters policy extraction.</p>
 </div></section><section class="section" id="multi-objective">
 <div class="reading">
 <p class="eyebrow">08 / Multi-objective learning</p>
