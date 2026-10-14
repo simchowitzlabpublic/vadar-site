@@ -68,3 +68,4 @@
 .hero .affiliations .funding-note{font:inherit;color:inherit;letter-spacing:inherit;white-space:normal}
 
 footer{flex-wrap:wrap}
+.gh-icon{width:16px;height:16px;fill:currentColor;flex:none}.button .gh-icon{margin-right:-4px}.nav-links a.nav-code{display:inline-flex;align-items:center;gap:6px}.nav-links a.nav-code .gh-icon{width:13px;height:13px}
