@@ -6,7 +6,7 @@
  const selected=()=>[0,1,2,3].filter(i=>mode==='myopic'?i===+stage.value:i>=(mode==='next'?Math.min(+stage.value+1,3):+stage.value));
  function el(tag,attrs){const n=document.createElementNS(ns,tag);Object.entries(attrs).forEach(([k,v])=>n.setAttribute(k,v));return n;}
  function setCaption(step){
-  const captions=[`Sample a replay transition while ${labels[+stage.value].toLowerCase()} is the first unfinished subgoal.`, 'Compute a separate target for every subgoal. All four losses update the shared critic, including values excluded from policy extraction.', `Apply ${mode==='next'?'next-future':mode==='current'?'current-future':'current-myopic'} weights. Only the red paths contribute to the aggregate value.`, 'Use the aggregate value in the base algorithm’s policy loss. The policy takes only the state as input.'];
+  const captions=[`We sample a transition where ${labels[+stage.value].toLowerCase()} is the next subgoal to finish.`, 'The critic learns all four values, including the ones the policy will not use.', 'The weights pick which values the policy sees. Only the red paths count.', 'The policy is trained on the weighted sum. It only sees the state.'];
   document.querySelector('#animation-caption').textContent=captions[step];
   renderInlineMath(document.querySelector('#animation-caption'));
   document.querySelectorAll('.phase-track span').forEach((e,i)=>e.classList.toggle('active',i===step));
@@ -80,7 +80,7 @@
   document.querySelector('#stage-output').textContent=`${current+1} of 4 · ${labels[current]}`;
   document.querySelector('#goal-chain').innerHTML=labels.map((label,i)=>`<div class="goal ${active.includes(i)?'active':''} ${i<current?'complete':''} ${i===current?'current-goal':''}"><span class="q">g<sub>${i+1}</sub></span><strong>${label}</strong><span class="state">${i<current?'Completed':i===current?'Current unfinished':'Future subgoal'}</span><span class="weight">w${'₁₂₃₄'[i]} = ${active.includes(i)?1:0}</span></div>`).join('');
   document.querySelector('#weight-equation').innerHTML=`Q<sub>agg</sub> = ${active.map(i=>`Q<sub>${i+1}</sub>`).join(' + ')}`;
-  const text={myopic:'Only the current-subgoal value enters the policy objective. The critic still learns all four values.',current:'The current and every later subgoal value enter the policy objective. Completed values are excluded.',next:current===3?'Only hanging the wrench remains. Next-future keeps Q₄ active at this final stage.':`Q${'₁₂₃₄'[current]} is excluded from policy extraction while ${labels[current].toLowerCase()} is unfinished. Later values enter the objective, and all four values still receive critic supervision.`};
+  const text={myopic:'The policy only sees the value of the subgoal it is working on. This is the same myopic signal as HGC.',current:'The policy sees the current subgoal and every later one. Finished subgoals drop out.',next:current===3?'Only hanging the wrench is left, so the policy uses Q₄.':`While the robot is still on ${labels[current].toLowerCase()}, the policy is trained on ${[1,2,3].filter(i=>i>current).map(i=>'Q'+'₁₂₃₄'[i]).join(' + ')} only. It is rewarded for doing ${labels[current].toLowerCase()} in a way that makes the later steps work, not just for finishing it.`};
   document.querySelector('#weight-explanation').textContent=text[mode];
   document.querySelectorAll('#goal-chain .q').forEach((e,i)=>e.innerHTML=mathHTML('g_'+(i+1)));
   document.querySelectorAll('#goal-chain .weight').forEach((e,i)=>e.innerHTML=mathHTML('w_'+(i+1)+'='+ (active.includes(i)?1:0)));

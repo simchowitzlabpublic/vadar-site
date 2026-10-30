@@ -1,5 +1,5 @@
 (() => {
- document.querySelectorAll('video').forEach(v=>{const speed=v.closest('.success-card')?1:2;v.defaultPlaybackRate=speed;v.playbackRate=speed;v.addEventListener('loadedmetadata',()=>{v.playbackRate=speed;});});
+ document.querySelectorAll('video').forEach(v=>{const speed=v.dataset.rate?Number(v.dataset.rate):v.closest('.success-card')?1:2;v.defaultPlaybackRate=speed;v.playbackRate=speed;v.addEventListener('loadedmetadata',()=>{v.playbackRate=speed;});});
  document.querySelector('#rollout-speed')?.addEventListener('change',e=>document.querySelectorAll('#videos-panel video').forEach(v=>{v.playbackRate=Number(e.target.value);}));
  document.querySelectorAll('[data-video-speed]').forEach(select=>select.addEventListener('change',()=>{select.closest('figure').querySelector('video').playbackRate=Number(select.value);}));
  document.querySelectorAll('.results-rollouts').forEach(panel=>panel.addEventListener('toggle',()=>{if(!panel.open)panel.querySelectorAll('video').forEach(v=>v.pause());}));

@@ -8,11 +8,11 @@
  const next=document.createElement('button');next.type='button';next.className='button';next.id='replay-next';next.textContent='Next transition →';button.before(next);
  demo.querySelector('.replay-selector').remove();
  const input=demo.querySelector('.sample-input');
- input.innerHTML='<span id="sample-name"></span><span id="sample-tuple"></span><span class="input-detail">One state-action pair enters the shared critic</span>';
+ input.innerHTML='<span id="sample-name"></span><span id="sample-tuple"></span><span class="input-detail">Same state and action for every subgoal</span>';
  const backbone=demo.querySelector('.supervision-backbone');
- backbone.innerHTML='<span class="critic-model-title">Shared critic</span><span id="critic-function"></span><span class="critic-model-note">Shared representation · four subgoal predictions</span>';
+ backbone.innerHTML='<span class="critic-model-title">Shared critic</span><span id="critic-function"></span>';
  demo.querySelector('.forward-arrow').style.visibility='hidden';
- const label=demo.querySelector('.prediction-label');label.textContent='Predict all four subgoal values for this transition';
+ const label=demo.querySelector('.prediction-label');label.textContent='One value per subgoal';
  const columns=[...demo.querySelectorAll('.prediction-column')];
  columns.forEach(c=>c.querySelector('.branch-wire').style.visibility='hidden');
  const ns='http://www.w3.org/2000/svg';
@@ -71,10 +71,10 @@
   demo.dataset.phase=phase;demo.dataset.sample=sample+1;
   demo.querySelectorAll('[data-step]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.step===phase)));
   const descriptions=[
-   'One sampled transition supplies the state and action to the critic.',
-   'For the same state and action, the critic predicts a return for every subgoal.',
-   'Each subgoal prediction is compared with its own temporal-difference target, producing four losses.',
-   'The sum of the four losses updates the shared critic. The next sampled transition produces another set of four predictions.'
+   'We sample one transition from the replay buffer.',
+   'The critic predicts a value for each of the four subgoals from the same state and action.',
+   'Each prediction is compared against its own TD target.',
+   'We add up the four losses and update the shared critic. Then we sample the next transition.'
   ];
   document.querySelector('#replay-explanation').textContent=descriptions[phase];animateSignals();
  }

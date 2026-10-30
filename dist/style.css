@@ -69,3 +69,46 @@
 
 footer{flex-wrap:wrap}
 .gh-icon{width:16px;height:16px;fill:currentColor;flex:none}.button .gh-icon{margin-right:-4px}
+/* Human-order layout additions */
+.vadar{color:var(--accent);font-weight:600}
+.lead-question{font-family:Newsreader,Georgia,serif;font-size:22px;font-style:italic;color:var(--muted);margin:0 0 6px}
+.desiderata{margin:0 0 22px;padding-left:22px}.desiderata li{margin-bottom:10px}
+.eyebrow a{color:inherit;text-decoration:underline;text-underline-offset:3px}
+.subtask-demo{max-width:960px;margin:36px auto 42px;display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:32px;align-items:center;background:#fff;border:1px solid #d9ceca;border-radius:10px;padding:26px}
+.subtask-video video{width:100%;height:auto;display:block;border-radius:6px;background:#eee}
+.subtask-panel .label{margin-bottom:16px}
+.subtask-track{position:relative;height:6px;background:var(--line);border-radius:3px;margin:0 0 20px}
+.subtask-fill{position:absolute;inset:0 auto 0 0;width:0;background:var(--accent);border-radius:3px}
+.subtask-tick{position:absolute;top:-4px;width:2px;height:14px;background:var(--ink);opacity:.35;transform:translateX(-1px)}
+.subtask-chips{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.subtask-chips button{width:100%;display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:12px;text-align:left;background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 14px;color:var(--muted);transition:background .25s,border-color .25s,color .25s}
+.subtask-chips button:hover{border-color:#cfaeaa}
+.subtask-index{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;border:1px solid var(--line);font-size:12px;font-weight:600}
+.subtask-name{font-size:15px;font-weight:500}
+.subtask-status{font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+.subtask-chips li.active button{border-color:var(--accent);color:var(--ink);background:var(--soft)}
+.subtask-chips li.active .subtask-index{border-color:var(--accent);color:var(--accent)}
+.subtask-chips li.done button{color:var(--ink);background:#f3f5f2;border-color:#c9d6c4}
+.subtask-chips li.done .subtask-index{background:#4d7a45;border-color:#4d7a45;color:#fff}
+.subtask-chips li.done .subtask-status{color:#4d7a45}
+.subtask-controls{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px}
+.subtask-controls .video-speed-label{margin-top:0}
+.subtask-demo figcaption{grid-column:1/-1;margin:0}
+@media(max-width:760px){.subtask-demo{grid-template-columns:1fr;gap:20px;padding:16px}.subtask-video{max-width:420px;margin:auto;width:100%}}
+@media(prefers-reduced-motion:reduce){.subtask-chips button{transition:none}}
+/* Palatino section headings */
+:root{--heading-serif:Palatino,'Palatino Linotype','Book Antiqua','URW Palladio L',Georgia,serif}
+main .section h2,main .section h3{font-family:var(--heading-serif);letter-spacing:-.01em;font-weight:400}
+.eyebrow{font-family:var(--heading-serif);text-transform:none;letter-spacing:.01em;font-size:17px;font-weight:400;font-style:italic}
+.eyebrow{font-size:21px;font-weight:700}
+/* Palatino body text */
+body{font-family:var(--heading-serif);font-size:18px}
+figcaption{font-size:14px}
+.bellman-figure{max-width:270px}
+body{font-size:19.5px}
+figcaption{font-size:15px}
+.authors{font-size:20px}.authors sup{font-size:12px}
+.paper-closer{margin-top:34px;padding-top:22px;border-top:1px solid var(--line);font-style:italic}
+body{font-size:21px}
+figcaption{font-size:16px}
+@media(max-width:580px){body{font-size:18.5px}figcaption{font-size:14.5px}}

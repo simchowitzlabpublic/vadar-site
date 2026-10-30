@@ -24,49 +24,28 @@
 </script>
 <script defer="True" src="replay.js">
 </script>
+<script defer="True" src="subtasks.js">
+</script>
 <script defer="True" src="media.js">
 </script>
 <link href="vendor/katex/katex.min.css" rel="stylesheet"/></head>
 <body>
-<a class="skip" href="#main">
-   Skip to content
-  </a>
-<div aria-hidden="true" id="progress">
-</div>
+<a class="skip" href="#main">Skip to content</a>
+<div aria-hidden="true" id="progress"></div>
 <header>
 <nav aria-label="Main navigation">
-<a class="brand" href="#">
-     VaDar
-     <span class="brand-dot">
-      .
-     </span>
-</a>
+<a class="brand" href="#">VaDar<span class="brand-dot">.</span></a>
 <div class="nav-links">
-<a href="#problem">
-      Problem
-     </a>
-<a href="#insight">
-      Critic learning
-     </a>
-<a href="#method">
-      Method
-     </a>
-<a href="#results">
-      Results
-     </a>
-<a href="#critic">
-      Critic quality
-     </a>
-<a href="#implicit-bellman">Implicit backup</a><a href="#multi-objective">
-      Multi-objective learning
-     </a>
-<a href="#cite">
-      Cite
-     </a>
+<a href="#intro">Introduction</a>
+<a href="#critics">Critics</a>
+<a href="#desiderata-1">iHGC</a>
+<a href="#desiderata-2">VaDar</a>
+<a href="#results">Results</a>
+<a href="#analysis">Understanding VaDar</a>
+<a href="#beyond">Beyond long horizon</a>
+<a href="#cite">Cite</a>
 </div>
-<a class="nav-paper" download="vadar-paper.pdf" href="assets/vadar-paper.pdf">
-     Download Paper
-    </a>
+<a class="nav-paper" href="https://arxiv.org/pdf/2610.26629">Paper</a>
 </nav>
 </header>
 <main id="main">
@@ -106,13 +85,13 @@
 </p>
 <p class="affiliations"><span><sup>1</sup> Carnegie Mellon University</span> · <span>* Equal contribution</span><br/><span class="funding-note">Work supported by a TRI University 3.0 grant.</span></p>
 <div class="hero-links">
-<a class="button primary" download="vadar-paper.pdf" href="assets/vadar-paper.pdf">
-      Download Paper
+<a class="button primary" href="https://arxiv.org/pdf/2610.26629">
+      Paper (arXiv)
      </a>
 <a class="button" href="https://github.com/simchowitzlabpublic/vadar-public"><svg class="gh-icon" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
       Code
      </a>
-<a class="button" href="#method">
+<a class="button" href="#desiderata-2">
       Explore the method
       <span aria-hidden="true">
        ↓
@@ -126,25 +105,67 @@
 <a aria-label="Open the VaDar overview figure at full size" href="assets/overview.png" rel="noopener" target="_blank">
 <img alt="VaDar compares goal-conditioned approaches with all-subgoal critic supervision: every transition trains a shared representation across all subgoals." height="853" src="assets/overview.png" width="2200"/>
 </a>
-<figcaption>
-<strong>
-       All-subgoal critic learning with a subgoal-independent policy.
-      </strong>
-      VaDar predicts all subgoal values from each transition and optimizes their weighted sum to train a single policy. Subgoal information is used only during training.
-     </figcaption>
+<figcaption>VaDar predicts all subgoal values from each transition and trains a single policy on their weighted sum. VaDar uses subgoal information only during training.</figcaption>
 </figure>
-<p class="standfirst">VaDar trains a shared critic to predict returns at multiple temporal resolutions, from intermediate subgoals to final-task success. These values guide a single policy that requires no subgoal information at deployment.</p>
+<p class="standfirst">VaDar trains a shared critic to predict returns at multiple temporal resolutions, from intermediate subgoals to final-task success. A single policy is trained on these values and needs no subgoal information at deployment.</p>
 </section>
-<section class="section" id="problem">
+<section class="section" id="intro">
 <div class="reading">
-<p class="eyebrow">
-      01 / Subgoal myopia
-     </p>
-<h2>
-      Myopic subgoal completion can compromise future subtasks.
-     </h2>
+<p class="eyebrow">Introduction</p>
+<h2>Learning long-horizon tasks with RL</h2>
+<p>Learning to solve long-horizon tasks via RL is a fundamental challenge in many domains, especially robotics. Many long-horizon robot manipulation tasks can be decomposed into subtasks.</p>
 </div>
-<div class="rollout-media">
+<figure class="subtask-demo" id="subtask-demo">
+<div class="subtask-video">
+<video aria-label="ToolHang rollout: grasp the frame, insert it into the base, grasp the wrench, hang the wrench on the frame" data-rate="1" muted playsinline poster="assets/toolhang-policy-success.jpg" preload="auto">
+<source src="assets/toolhang-policy-success.mp4" type="video/mp4"/>
+</video>
+</div>
+<div class="subtask-panel">
+<p class="label">Robomimic ToolHang · four subtasks</p>
+<div aria-hidden="true" class="subtask-track"><span class="subtask-fill"></span></div>
+<ol class="subtask-chips">
+<li data-t="0.48"><button type="button"><span class="subtask-index">1</span><span class="subtask-name">Grasp frame</span><span class="subtask-status">pending</span></button></li>
+<li data-t="0.83"><button type="button"><span class="subtask-index">2</span><span class="subtask-name">Insert frame</span><span class="subtask-status">pending</span></button></li>
+<li data-t="1.83"><button type="button"><span class="subtask-index">3</span><span class="subtask-name">Grasp wrench</span><span class="subtask-status">pending</span></button></li>
+<li data-t="2.50"><button type="button"><span class="subtask-index">4</span><span class="subtask-name">Hang wrench</span><span class="subtask-status">pending</span></button></li>
+</ol>
+<div class="subtask-controls">
+<button class="button" id="subtask-play" type="button">Pause</button>
+<label class="video-speed-label">Speed <select id="subtask-speed"><option value="0.125">0.125×</option><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option selected value="1">1×</option></select></label>
+</div>
+</div>
+<figcaption>A successful VaDar rollout on ToolHang. Each subtask lights up when it is completed; click a subtask to jump to it.</figcaption>
+</figure>
+<div class="reading">
+<p>Conventional wisdom suggests leveraging this natural subgoal decomposition to solve these tasks efficiently. The prevalent methods that exploit this subgoal structure (which we term <strong>hierarchical goal conditioning</strong>, HGC) learn a subgoal-conditioned policy and rely on a dedicated planner, often a VLM, to determine which subgoal is active at inference time. The policy is then conditioned on the active subgoal to solve the task.</p>
+<p>For current robotic manipulation tasks, VLMs are increasingly good at detecting the active subtask and at supplying completion signals that tell whether a subtask has been accomplished.</p>
+<p>We first look at the pitfalls of conventional HGC methods, then modify them to arrive at our proposed method, Value Disaggregation (VaDar).</p>
+<p>The first drawback is determining the current active subgoal while the policy is running. This requires a dedicated planner or querying the VLM during inference, which is both expensive and slow. An ideal method would use these expensive VLM calls only at training time, when we can spend the resources, and keep inference cheap and reliable.</p>
+<p>The other pressing drawback is that simply conditioning the policy on the current active subgoal leads to myopic downstream behavior. This is severe in many robotic manipulation tasks, especially when future subgoals depend on the current one. How a tool will be used dictates how it should be grasped. A policy conditioned only on “grasp the tool”, with no awareness of what comes next, can complete the grasp in a way that makes the next step impossible. Hence we need a mechanism to overcome the myopia that comes from conditioning the policy on the current subgoal alone.</p>
+<p>Summarising this discussion, the two desiderata we need in our algorithm are:</p>
+<ol class="desiderata">
+<li><a href="#desiderata-1"><strong>Desideratum 1</strong></a>: no subgoal dependence in the policy, to avoid costly VLM calls during inference.</li>
+<li><a href="#desiderata-2"><strong>Desideratum 2</strong></a>: no myopic behavior; the policy should receive information about future subgoals.</li>
+</ol>
+</div>
+</section>
+<section class="section tinted" id="critics">
+<div class="reading">
+<p class="eyebrow">Value-based RL</p>
+<h2>Learning critics</h2>
+<p>In value-based RL we learn a critic <span data-tex="Q(s,a)"></span>: how much return we expect if we take action <span data-tex="a"></span> in state <span data-tex="s"></span>. The policy then picks actions the critic likes. We train the critic with temporal-difference (TD) learning, regressing it toward the reward plus its own guess at the next state:</p>
+<div aria-label="A temporal-difference target is the immediate reward plus the discounted next-state value" class="equation" data-tex="y = r + \gamma Q(s^{\prime},a^{\prime})"></div>
+<p>With only a sparse reward at the end of the task, this signal has to travel backward one state at a time, so the critic needs good values near the end before it can learn anything near the start. With subgoals, the critic can also take a subgoal <span data-tex="g"></span> as input, <span data-tex="Q(s,a,g)"></span>, and learn the return for reaching that subgoal.</p>
+</div>
+</section>
+<section class="section" id="desiderata-1">
+<div class="reading">
+<p class="eyebrow"><a href="#intro">Desideratum 1</a></p>
+<h2>Implicit hierarchical goal conditioning (iHGC)</h2>
+<p>We can remove the subgoal dependence from the policy and keep it only in the critic. We refer to this method as <strong>iHGC</strong> (implicit hierarchical goal conditioning). This satisfies desideratum 1, but the policy is still not aware of future subgoals. In our experiments, iHGC, though more performant than HGC in some cases, <a href="#myopia">falls prey to the same myopia</a> we see in HGC. This brings us to <a href="#desiderata-2">desideratum 2</a>.</p>
+</div>
+<div class="rollout-media" id="myopia">
 <div aria-label="Myopia rollouts" class="media-tabs" role="tablist">
 <button aria-controls="images-panel" aria-selected="true" id="images-tab" role="tab" type="button">
        Images
@@ -158,22 +179,8 @@
 <a aria-label="Enlarge figure: Chronological frames of myopic failures on ArrangeTea and PreSoakPan." href="assets/myopia.png" rel="noopener" target="_blank">
 <img alt="Chronological frames of myopic failures on ArrangeTea and PreSoakPan." height="1056" loading="lazy" src="assets/myopia.png" width="2400"/>
 </a>
-<figcaption>
-<strong>
-         Myopic failures on two tasks from the RoboCasa suite.
-        </strong>
-<strong>
-         Top, ArrangeTea:
-        </strong>
-        the kettle placement obstructs the mug; the later collision knocks the kettle off the counter.
-        <strong>
-         Bottom, PreSoakPan:
-        </strong>
-        the robot puts the pan in the sink in a position that prevents stable sponge placement. Read each row from left to right.
-        <a href="assets/myopia.png" rel="noopener" target="_blank">
-         View full size ↗
-        </a>
-</figcaption>
+<figcaption><strong>Two myopic failures on RoboCasa, read left to right.</strong> <strong>Top, ArrangeTea:</strong> the robot places the kettle where it blocks the mug, and placing the mug later knocks the kettle off the counter. <strong>Bottom, PreSoakPan:</strong> the robot puts the pan in the sink in a spot where the sponge cannot rest on it. In both, the current subgoal is done, but the way it was done breaks the next one.
+<a href="assets/myopia.png" rel="noopener" target="_blank">View full size ↗</a></figcaption>
 </figure>
 </div>
 <div aria-labelledby="videos-tab" hidden="" id="videos-panel" role="tabpanel">
@@ -189,27 +196,17 @@
         </a>
         .
        </video><label class="video-speed-label">Playback speed <select id="rollout-speed"><option value="1">1×</option><option selected="" value="2">2×</option><option value="4">4×</option></select></label>
-<figcaption id="rollout-caption">Myopic failure on the RoboCasa PreSoakPan task. The pan is dropped into the sink in a position that does not permit a stable placement of the sponge on top of it.</figcaption>
+<figcaption id="rollout-caption">Myopic failure on the RoboCasa PreSoakPan task. The robot drops the pan into the sink in a position where the sponge cannot rest stably on top of it.</figcaption>
 </figure>
 </div>
 </div>
-<div class="reading">
-<p>The ArrangeTea task in the RoboCasa suite requires placing a kettle and a mug on a tray, then closing the cabinet. In the rollout above, the policy places the kettle on the tray in a position that obstructs the subsequent mug placement. The “placing the kettle” subgoal is complete, but attempting to place the mug causes a collision that knocks the kettle off the counter. In the RoboCasa PreSoakPan task, the policy places the pan in the sink in a position that prevents stable placement of the sponge. Both failure cases result from over-optimizing for the current subtask.</p>
-<p>Both implicit and explicit hierarchical goal conditioning run into a common failure mode: <em>overly myopic policy exploitation</em>. Both methods update the policy against the critic of the currently active subgoal alone. As a result, the policy is rewarded for completing the current subgoal without accounting for how its manner of completion affects subsequent subtasks.</p>
-</div>
-<div class="reading">
-<p>Implicit hierarchical goal conditioning retains goal-conditioned critics but uses a subgoal-independent policy, removing the need for test-time goal information.</p>
-<p>The policy does not distinguish between <em>merely completing the current subgoal</em> and <em>completing it in a way that facilitates future subgoals</em>. Our method, VaDar, addresses this limitation by optimizing the policy for future-subgoal values, providing a learning signal for actions that enable progress toward full-task completion rather than just myopically completing the current subtask.</p>
-</div>
 </section>
-<section class="section tinted" id="insight">
+<section class="section tinted" id="desiderata-2">
 <div class="reading">
-<p class="eyebrow">
-      02 / Learning the values
-     </p>
-<h2>
-      Dense critic supervision at multiple temporal resolutions.
-     </h2>
+<p class="eyebrow"><a href="#intro">Desideratum 2</a></p>
+<h2>Future awareness: VaDar</h2>
+<p>Our method needs to be aware of future subgoals to curb the inherent myopia of naive goal conditioning, while keeping the subgoal dependence only on the critic side.</p>
+<p>VaDar keeps the subgoals in the critic, like iHGC, but the critic now predicts a value for every subgoal at the same time, not just the active one. Each subgoal gets its own reward and its own TD target, and we sum the losses to update one shared critic.</p>
 </div>
 <div aria-label="Replay transitions train every subgoal value through a shared critic" class="replay-demo" data-phase="0">
 <div class="replay-toolbar">
@@ -326,43 +323,24 @@
 <div aria-hidden="true" class="replay-selector">
 </div>
 </div>
-<div class="replay-critic"><div class="sample-input">One sampled transition <span data-tex="(s,a,\mathbf{r},s')"></span><span class="input-detail">Feed the same state and action to every prediction</span></div><div class="forward-arrow">↓</div><div class="supervision-backbone">Shared critic representation <span data-tex="h_\phi(s,a)"></span></div><div class="prediction-label">Four predicted subgoal returns from the same transition</div><div class="prediction-grid"><div class="prediction-column"><div class="branch-wire"><span></span></div><div class="predicted-value"><span class="prediction-kind">Predicted return</span><span class="prediction-formula" data-tex="Q_{1}(s,a)"></span><span class="prediction-goal">Grasp frame</span></div><div class="target-value"><span>Separate TD target</span><b data-tex="y_{1}"></b></div><div class="prediction-loss"><span data-tex="\mathcal{L}_{1}=(Q_{1}-y_{1})^2"></span></div></div><div class="prediction-column"><div class="branch-wire"><span></span></div><div class="predicted-value"><span class="prediction-kind">Predicted return</span><span class="prediction-formula" data-tex="Q_{2}(s,a)"></span><span class="prediction-goal">Insert frame</span></div><div class="target-value"><span>Separate TD target</span><b data-tex="y_{2}"></b></div><div class="prediction-loss"><span data-tex="\mathcal{L}_{2}=(Q_{2}-y_{2})^2"></span></div></div><div class="prediction-column"><div class="branch-wire"><span></span></div><div class="predicted-value"><span class="prediction-kind">Predicted return</span><span class="prediction-formula" data-tex="Q_{3}(s,a)"></span><span class="prediction-goal">Grasp wrench</span></div><div class="target-value"><span>Separate TD target</span><b data-tex="y_{3}"></b></div><div class="prediction-loss"><span data-tex="\mathcal{L}_{3}=(Q_{3}-y_{3})^2"></span></div></div><div class="prediction-column"><div class="branch-wire"><span></span></div><div class="predicted-value"><span class="prediction-kind">Predicted return</span><span class="prediction-formula" data-tex="Q_{4}(s,a)"></span><span class="prediction-goal">Hang wrench</span></div><div class="target-value"><span>Separate TD target</span><b data-tex="y_{4}"></b></div><div class="prediction-loss"><span data-tex="\mathcal{L}_{4}=(Q_{4}-y_{4})^2"></span></div></div></div><div class="critic-feedback"><span class="feedback-arrow">↑</span><span>Sum all four losses</span><span data-tex="\mathcal{L}_{\mathrm{critic}}=\sum_{g=1}^{4}\mathcal{L}_g"></span><strong>Update the shared representation and value predictions</strong></div><div aria-label="Critic learning steps" class="replay-steps" role="group"><button data-step="0" type="button">1. Sample</button><button data-step="1" type="button">2. Predict all values</button><button data-step="2" type="button">3. Compare targets</button><button data-step="3" type="button">4. Update critic</button></div><p id="replay-explanation"></p><p class="replay-numbers-note">Subgoals from the Robomimic ToolHang task. Each target uses its own subgoal reward and next-state value.</p></div>
+<div class="replay-critic"><div class="sample-input">One sampled transition <span data-tex="(s,a,\mathbf{r},s')"></span><span class="input-detail">Feed the same state and action to every prediction</span></div><div class="forward-arrow">↓</div><div class="supervision-backbone">Shared critic representation <span data-tex="h_\phi(s,a)"></span></div><div class="prediction-label">Four predicted subgoal returns from the same transition</div><div class="prediction-grid"><div class="prediction-column"><div class="branch-wire"><span></span></div><div class="predicted-value"><span class="prediction-formula" data-tex="Q_{1}(s,a)"></span><span class="prediction-goal">Grasp frame</span></div><div class="target-value"><span>TD target</span><b data-tex="y_{1}"></b></div><div class="prediction-loss"><span data-tex="\mathcal{L}_{1}=(Q_{1}-y_{1})^2"></span></div></div><div class="prediction-column"><div class="branch-wire"><span></span></div><div class="predicted-value"><span class="prediction-formula" data-tex="Q_{2}(s,a)"></span><span class="prediction-goal">Insert frame</span></div><div class="target-value"><span>TD target</span><b data-tex="y_{2}"></b></div><div class="prediction-loss"><span data-tex="\mathcal{L}_{2}=(Q_{2}-y_{2})^2"></span></div></div><div class="prediction-column"><div class="branch-wire"><span></span></div><div class="predicted-value"><span class="prediction-formula" data-tex="Q_{3}(s,a)"></span><span class="prediction-goal">Grasp wrench</span></div><div class="target-value"><span>TD target</span><b data-tex="y_{3}"></b></div><div class="prediction-loss"><span data-tex="\mathcal{L}_{3}=(Q_{3}-y_{3})^2"></span></div></div><div class="prediction-column"><div class="branch-wire"><span></span></div><div class="predicted-value"><span class="prediction-formula" data-tex="Q_{4}(s,a)"></span><span class="prediction-goal">Hang wrench</span></div><div class="target-value"><span>TD target</span><b data-tex="y_{4}"></b></div><div class="prediction-loss"><span data-tex="\mathcal{L}_{4}=(Q_{4}-y_{4})^2"></span></div></div></div><div class="critic-feedback"><span class="feedback-arrow">↑</span><span>Add the four losses</span><span data-tex="\mathcal{L}_{\mathrm{critic}}=\sum_{g=1}^{4}\mathcal{L}_g"></span><strong>Update the shared critic</strong></div><div aria-label="Critic learning steps" class="replay-steps" role="group"><button data-step="0" type="button">1. Sample</button><button data-step="1" type="button">2. Predict all values</button><button data-step="2" type="button">3. Compare targets</button><button data-step="3" type="button">4. Update critic</button></div><p id="replay-explanation"></p><p class="replay-numbers-note">The four subgoals are from ToolHang. Each target uses that subgoal's reward and next-state value.</p></div>
 </div>
 <div class="reading">
-<p>
-      Under sparse final-task rewards, temporal-difference updates propagate information about success backward through successive states. The critic must learn accurate next-state values before these targets can reliably supervise earlier state-action pairs.
-     </p>
-<div aria-label="A temporal-difference target is the immediate reward plus the discounted next-state value" class="equation" data-tex="y = r + \gamma Q(s^{\prime},a^{\prime})"></div>
-<p>Intermediate subgoals provide supervision at multiple temporal resolutions. A grasp can be completed before a placement, and both can precede full-task success. VaDar predicts all of these subgoal returns, with a separate temporal-difference target for each prediction.</p>
-<p>Each subgoal reward remains sparse, but every sampled transition contributes a loss for every subgoal value. The predictions share network parameters, making features learned from intermediate targets available to the final-task prediction.</p>
-</div>
-<div class="reading">
-
-<p>To examine whether this intermediate supervision improves the final-task critic, we introduce <a href="#analysis">Last-Q</a>: it retains all-subgoal critic supervision but uses only the final-subgoal value for policy extraction.</p>
-</div>
-</section>
-<section class="section" id="method">
-<div class="reading">
-<p class="eyebrow">
-      03 / Using the values
-     </p>
-<h2>
-      Next-future weighting optimizes beyond the current subgoal.
-     </h2>
+<p>To train the policy, we combine these predictions into one objective:</p>
+<div aria-label="Aggregate action value equals the sum of weighted subgoal values" class="equation" data-tex="Q_{\mathrm{agg}}(s,a)=\sum_{g\in\mathcal{G}}w_g Q(s,a,g)"></div>
+<p>The weights <span data-tex="w_g"></span> (the gating) decide which subgoal values the policy is trained on. We try three gatings. <strong>Current-myopic</strong> uses only the subgoal the robot is working on, which is what HGC and iHGC do. <strong>Current-future</strong> adds every later subgoal. <strong>Next-future</strong>, our default, drops the current subgoal and uses only the later ones; at the last subgoal it uses the final value.</p>
 </div>
 <div class="interactive" id="weighting-demo">
 <div class="interactive-heading">
 <div>
 <p class="label">
-        ToolHang / animated training diagram
-       </p>
+        ToolHang
+</p>
 <h3>
-        Select values for the policy update
-       </h3>
+        Which values train the policy?
+</h3>
 </div>
-<span class="demo-tag">
-       Schematic, not rollout data
-      </span>
+<span class="demo-tag">Schematic</span>
 </div>
 <div class="anim-toolbar">
 <button class="button primary" id="anim-play" type="button">
@@ -425,13 +403,13 @@
 <span>
 <i class="blue-dot">
 </i>
-       Critic supervision: all subgoals
-      </span>
+       Trains the critic (all subgoals)
+</span>
 <span>
 <i class="red-dot">
 </i>
-       Policy extraction: selected values
-      </span>
+       Trains the policy (selected subgoals)
+</span>
 </div>
 <div aria-hidden="true" class="phase-track">
 <span>
@@ -455,150 +433,58 @@
 <p id="weight-explanation">
 </p>
 </div>
-<p class="demo-note">
-      The dots show training signals. Each stage illustrates a different task state; a policy update does not itself complete a subgoal.
-     </p>
+<p class="demo-note">Each stage is a different moment in the task. The dots are training signals, not robot motion.</p>
 </div>
 <div class="reading">
-<p>VaDar trains the critic to predict a value for every subgoal. To train the policy, we combine these predictions into a single objective:</p>
-<div aria-label="Aggregate action value equals the sum of weighted subgoal values" class="equation" data-tex="Q_{\mathrm{agg}}(s,a)=\sum_{g\in\mathcal{G}}w_g Q(s,a,g)"></div>
-<p>We compare three weighting schemes. <strong>Current-myopic</strong> uses only the first unfinished subgoal. <strong>Current-future</strong> includes that subgoal and all later ones. <strong>Next-future</strong>, our default, uses only the later subgoals. When only the final subgoal remains, it uses the final value.</p>
-<p>Why exclude the current subgoal? An action can complete one step while making the rest of the task harder. Optimizing only for that step can reward such actions. Future-subgoal values instead evaluate the action’s consequences for later completion.</p>
-<p>These values score the action the robot is considering <strong>now</strong>. They can therefore guide the robot through the current step, even when its value is excluded from the policy objective. The aim is to complete each step in a way that allows the remaining steps to succeed.</p>
-<p>All subgoal values still receive critic supervision. The weights determine only which values enter the policy update. We use their weighted sum with OGPO, FQL, or SAC; the deployed policy takes only the state and requires no subgoal information.</p>
-<details class="technical-note"><summary>Critic update and completed subgoals</summary><p>Each replay transition supplies a separate reward and temporal-difference target for every subgoal. We sum these losses to train the shared critic and clip targets to cap values for completed subgoals. The paper gives the clipping rule and the extension to subgoals arranged in a directed acyclic graph.</p></details>
+<p>So how does VaDar meet both desiderata? The policy only takes the state, so we need subgoal labels only at training time, to compute rewards and weights (<a href="#desiderata-1">desideratum 1</a>). And the policy is trained on the values of future subgoals, so grasping the tool in a way that ruins the next step gets a low score (<a href="#desiderata-2">desideratum 2</a>).</p>
+<details class="technical-note"><summary>What happens to finished subgoals?</summary><p>Once a subgoal is done, its value should stop growing, so we clip its TD target. The clipping rule and the extension to subgoals that form a directed acyclic graph are in the paper.</p></details>
 </div>
 </section>
-<section class="section tinted" id="results">
+<section class="section" id="results">
 <div class="reading">
-<p class="eyebrow">
-      04 / Results
-     </p>
-<h2>
-      VaDar improves learning on long-horizon manipulation tasks.
-     </h2>
+<p class="eyebrow">Results</p>
+<p class="lead-question">Does our method help us reliably learn long-horizon robot manipulation?</p>
+<h2>VaDar improves learning on long-horizon manipulation tasks</h2>
 </div>
 <figure class="wide-figure">
 <a aria-label="Open the full benchmark results" href="assets/results.png" rel="noopener" target="_blank">
 <img alt="Paper learning curves comparing VaDar, goal-conditioned approaches, dense rewards, and sparse rewards across RoboCasa, Robomimic, LIBERO, and OGBench." height="1093" loading="lazy" src="assets/results.png" width="2200"/>
 </a>
-<figcaption>
-<strong>
-       Success rate versus environment steps.
-      </strong>
-      Solid and dotted VaDar curves use next-future and current-future weighting. Comparisons share the same base algorithm within each plot. Open the figure to inspect individual tasks.
-     </figcaption>
-</figure><details class="results-rollouts"><summary>View successful rollouts</summary><div aria-label="Successful rollouts" class="success-gallery policy-gallery"><figure class="success-card"><h3>PreSoakPan</h3><video aria-label="PreSoakPan successful rollout" controls="" muted="" playsinline="" poster="assets/presoakpan-success.jpg" preload="metadata"><source src="assets/presoakpan-success.mp4" type="video/mp4"/></video><label class="video-speed-label">Playback speed <select data-video-speed=""><option selected="" value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label></figure><figure class="success-card"><h3>ArrangeTea</h3><video aria-label="ArrangeTea successful trained-policy rollout" controls="" muted="" playsinline="" poster="assets/arrangetea-policy-success.jpg" preload="metadata"><source src="assets/arrangetea-policy-success.mp4" type="video/mp4"/></video><label class="video-speed-label">Playback speed <select data-video-speed=""><option selected="" value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label></figure><figure class="success-card"><h3>ToolHang</h3><video aria-label="ToolHang successful trained-policy rollout" controls="" muted="" playsinline="" poster="assets/toolhang-policy-success.jpg" preload="metadata"><source src="assets/toolhang-policy-success.mp4" type="video/mp4"/></video><label class="video-speed-label">Playback speed <select data-video-speed=""><option selected="" value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label></figure></div></details>
-<div class="reading">
-<p>We pretrain each method by behavior cloning, stopping at a low success rate so that all methods begin online fine-tuning from a comparable starting point. Within each comparison, all methods use the same base algorithm for policy extraction. The baselines include hierarchical and implicit hierarchical goal conditioning, dense preference rewards, and the sparse-reward base algorithm.</p>
-<p>
-      With OGPO on RoboCasa, VaDar is the only method in this comparison to converge on LoadDishwasher. On PreSoakPan, it reaches nearly twice the success rate of the strongest baseline, implicit hierarchical goal conditioning.
-     </p>
-</div>
-<div class="reading">
-<p>
-      The benefit varies across tasks and algorithms. On Robomimic, VaDar performs similarly to goal-conditioned methods with OGPO, but learns faster on Transport and ToolHang with FQL. On OGBench with SAC, it performs comparably to the goal-conditioned baselines. In all of these settings, VaDar deploys a policy that does not need goal information.
-     </p>
-</div>
+<figcaption>Success rate over environment steps. Solid VaDar is next-future, dotted is current-future. Within a plot, every method uses the same base algorithm.</figcaption>
+</figure><details class="results-rollouts"><summary>Watch VaDar rollouts</summary><div aria-label="Successful rollouts" class="success-gallery policy-gallery"><figure class="success-card"><h3>PreSoakPan</h3><video aria-label="PreSoakPan successful rollout" controls="" muted="" playsinline="" poster="assets/presoakpan-success.jpg" preload="metadata"><source src="assets/presoakpan-success.mp4" type="video/mp4"/></video><label class="video-speed-label">Playback speed <select data-video-speed=""><option selected="" value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label></figure><figure class="success-card"><h3>ArrangeTea</h3><video aria-label="ArrangeTea successful trained-policy rollout" controls="" muted="" playsinline="" poster="assets/arrangetea-policy-success.jpg" preload="metadata"><source src="assets/arrangetea-policy-success.mp4" type="video/mp4"/></video><label class="video-speed-label">Playback speed <select data-video-speed=""><option selected="" value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label></figure><figure class="success-card"><h3>ToolHang</h3><video aria-label="ToolHang successful trained-policy rollout" controls="" muted="" playsinline="" poster="assets/toolhang-policy-success.jpg" preload="metadata"><source src="assets/toolhang-policy-success.mp4" type="video/mp4"/></video><label class="video-speed-label">Playback speed <select data-video-speed=""><option selected="" value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label></figure></div></details>
 </section>
-<section class="section" id="analysis">
+<section class="section tinted" id="analysis">
 <div class="reading">
-<p class="eyebrow">
-      05 / Understanding the gains
-     </p>
-<h2>
-      Intermediate supervision improves final-task critic learning.
-     </h2>
+<p class="eyebrow">Understanding VaDar in depth</p>
+<h2>Multi-resolution temporal supervision gives an implicit Bellman backup</h2>
 </div>
+<figure class="wide-figure bellman-figure"><a aria-label="Enlarge the implicit Bellman backup diagram" href="assets/implicit-bellman.png" rel="noopener" target="_blank"><img alt="One state-action transition supervises several subgoal predictions; their TD losses update the same shared critic representation." height="816" loading="lazy" src="assets/implicit-bellman.png" width="792"/></a><figcaption>Every subgoal's TD loss updates the same shared critic.</figcaption></figure>
+<div class="reading"><p>To test whether the intermediate targets improve the critic by themselves, we train <strong>Last-Q</strong>: its critic is supervised on every subgoal, but its policy is trained only on the final-subgoal value, the same policy objective as the sparse-reward baseline. Last-Q substantially outperforms the sparse baseline on RoboCasa and approaches VaDar on several tasks, so the intermediate targets improve the final-subgoal critic even though the policy never uses them.</p></div>
 <figure class="wide-figure">
 <a aria-label="Enlarge figure: Last-Q, next-future VaDar, and Sparse learning curves on selected tasks." href="assets/lastq.png" rel="noopener" target="_blank">
 <img alt="Last-Q, next-future VaDar, and Sparse learning curves on selected tasks." height="352" loading="lazy" src="assets/lastq.png" width="2200"/>
 </a>
-<figcaption>
-<strong>
-       Last-Q isolates the contribution of intermediate critic supervision.
-      </strong>
-      Last-Q uses intermediate subgoals only to supervise the critic. It is generally closer to next-future VaDar with OGPO than with FQL.
-      <a href="assets/lastq.png" rel="noopener" target="_blank">
-       View full size ↗
-      </a>
-</figcaption>
+<figcaption>Last-Q trains the critic on every subgoal but the policy only on the final one. It gets closer to VaDar with OGPO than with FQL.
+<a href="assets/lastq.png" rel="noopener" target="_blank">View full size ↗</a></figcaption>
 </figure>
-<div class="reading">
-<p>To isolate the contribution of critic supervision, we train <strong>Last-Q</strong> with targets for every subgoal but use only the final-subgoal value to train its policy. Last-Q therefore has the same policy objective as the sparse-reward baseline; only its critic receives the extra intermediate targets.</p>
-<p>Last-Q substantially outperforms the sparse-reward baseline on RoboCasa and approaches next-future VaDar on several tasks. The policy objective is unchanged, so the improvement supports the benefit of intermediate supervision for learning the final-task critic.</p>
-</div>
-<div class="reading">
-<h3>
-      Future-aware policy extraction improves sample efficiency.
-     </h3>
-</div>
-<figure class="wide-figure">
-<a aria-label="Enlarge figure: Current-myopic, current-future, and next-future weighting compared with HGC and iHGC." href="assets/weighting.png" rel="noopener" target="_blank">
-<img alt="Current-myopic, current-future, and next-future weighting compared with HGC and iHGC." height="370" loading="lazy" src="assets/weighting.png" width="2200"/>
-</a>
-<figcaption>
-<strong>
-       All-subgoal supervision is held fixed across the VaDar variants.
-      </strong>
-      The difference is the set of values used for policy extraction.
-      <a href="assets/weighting.png" rel="noopener" target="_blank">
-       View full size ↗
-      </a>
-</figcaption>
-</figure>
-<div class="reading">
-<p>We then vary the policy weighting scheme while keeping all-subgoal critic supervision and the subgoal-independent policy architecture fixed. Current-myopic does not outperform the goal-conditioned baselines. Current-future and next-future improve sample efficiency and are the only variants in this comparison to converge on LoadDishwasher. Dense critic supervision alone is insufficient when policy extraction remains myopic.</p>
-</div>
-<div class="reading">
-<p>
-      Future-aware extraction also helps goal-conditioned policies on PreSoakPan with OGPO, bringing them close to VaDar. Removing the goal input alone therefore does not explain the gains.
-     </p>
-<h3>
-      Aggregating rewards does not recover the gains.
-     </h3>
-</div>
+<div class="reading"><p>Isn't this just reward shaping? Theoretically, yes, but <em>only</em> theoretically. With fixed weights and exact Q-functions under the same policy, a weighted sum of subgoal values is the value of the weighted sum of subgoal rewards. VaDar breaks both assumptions: its weights change with the state, and its critics are clipped and learned. So we test it. <strong>VaDar-Shaped</strong> adds up the subgoal rewards before the Bellman backup and trains one scalar critic on them. It fails to learn on the harder RoboCasa tasks and is much less sample efficient elsewhere. Together with Last-Q, this says VaDar's gains come from supervising the critic at multiple temporal resolutions, not from reward shaping alone.</p></div>
 <figure class="wide-figure">
 <a aria-label="Enlarge figure: VaDar compared with a scalar critic trained on aggregated subgoal rewards." href="assets/reward-shaping.png" rel="noopener" target="_blank">
 <img alt="VaDar compared with a scalar critic trained on aggregated subgoal rewards." height="538" loading="lazy" src="assets/reward-shaping.png" width="2400"/>
 </a>
-<figcaption>
-<strong>
-       Value disaggregation versus reward aggregation.
-      </strong>
-      VaDar-Shaped trains a scalar critic on summed subgoal rewards. It does not recover VaDar’s performance on these tasks.
-      <a href="assets/reward-shaping.png" rel="noopener" target="_blank">
-       View full size ↗
-      </a>
-</figcaption>
+<figcaption>VaDar-Shaped sums the subgoal rewards and trains one critic. It does not match VaDar on these tasks.
+<a href="assets/reward-shaping.png" rel="noopener" target="_blank">View full size ↗</a></figcaption>
 </figure>
 <div class="reading">
-<p>With exact values, a common policy, and fixed weights, aggregating values is equivalent to evaluating the aggregated reward. A neural critic need not learn the two equally well. VaDar also uses state-dependent weights and clipped targets, which fall outside this equivalence.</p>
-<p>
-      We compare against VaDar-Shaped, which aggregates subgoal rewards before the Bellman backup and trains a scalar critic. It fails to learn on the harder RoboCasa tasks and is less sample efficient elsewhere. Together with Last-Q, these results suggest that reward shaping alone does not explain the gains from all-subgoal critic supervision.
-     </p>
+<h2>So VaDar lets us learn a good critic?</h2>
+<p>We freeze a behavior-cloned policy and train only the critic. Then we ask: does the critic pick the actions that lead to success? At test time the frozen policy proposes <span data-tex="N"></span> action chunks and the critic picks the one it values most (best-of-<span data-tex="N"></span> steering, as in <a href="https://arxiv.org/abs/2507.07969">Q-chunking</a>). We compare a VaDar critic with a Sparse critic trained on the same data.</p>
 </div>
-</section>
-<section class="section tinted" id="critic">
-<div class="reading">
-<p class="eyebrow">
-      06 / Isolating critic quality
-     </p>
-<h2>
-      Test-time steering with a frozen policy.
-     </h2>
-</div>
-<div aria-label="Successful best-of-N steering rollouts" class="success-gallery steering-gallery"><figure class="success-card"><h3>ArrangeTea</h3><video aria-label="ArrangeTea successful best-of-N steering rollout" controls="" muted="" playsinline="" poster="assets/arrangetea-success.jpg" preload="metadata"><source src="assets/arrangetea-success.mp4" type="video/mp4"/></video><figcaption>Frozen BC policy; VaDar critic selects among <span data-tex="N=16"></span> candidate actions.</figcaption><label class="video-speed-label">Playback speed <select data-video-speed=""><option selected="" value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label></figure><figure class="success-card"><h3>ToolHang</h3><video aria-label="ToolHang successful best-of-N steering rollout" controls="" muted="" playsinline="" poster="assets/toolhang-success.jpg" preload="metadata"><source src="assets/toolhang-success.mp4" type="video/mp4"/></video><figcaption>Frozen BC policy; VaDar critic selects among <span data-tex="N=16"></span> candidate actions.</figcaption><label class="video-speed-label">Playback speed <select data-video-speed=""><option selected="" value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label></figure></div><figure class="wide-figure">
+<div aria-label="Successful best-of-N steering rollouts" class="success-gallery steering-gallery"><figure class="success-card"><h3>ArrangeTea</h3><video aria-label="ArrangeTea successful best-of-N steering rollout" controls="" muted="" playsinline="" poster="assets/arrangetea-success.jpg" preload="metadata"><source src="assets/arrangetea-success.mp4" type="video/mp4"/></video><figcaption>Frozen BC policy; the VaDar critic picks among <span data-tex="N=16"></span> candidate action chunks. (The success rates below use <span data-tex="N=4"></span>.)</figcaption><label class="video-speed-label">Playback speed <select data-video-speed=""><option selected="" value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label></figure><figure class="success-card"><h3>ToolHang</h3><video aria-label="ToolHang successful best-of-N steering rollout" controls="" muted="" playsinline="" poster="assets/toolhang-success.jpg" preload="metadata"><source src="assets/toolhang-success.mp4" type="video/mp4"/></video><figcaption>Frozen BC policy; the VaDar critic picks among <span data-tex="N=16"></span> candidate action chunks. (The success rates below use <span data-tex="N=4"></span>.)</figcaption><label class="video-speed-label">Playback speed <select data-video-speed=""><option selected="" value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label></figure></div><figure class="wide-figure">
 <a aria-label="Open the frozen-policy steering results" href="assets/steering.png" rel="noopener" target="_blank">
 <img alt="Best-of-four steering results as critic training progresses on ArrangeTea, PreSoakPan, and ToolHang." height="527" loading="lazy" src="assets/steering.png" width="2200"/>
 </a>
-<figcaption>Success rates for critic-guided action selection with a frozen policy. The dashed line marks the unsteered policy’s success rate. Gains are clearest on ArrangeTea and ToolHang; improvements on PreSoakPan are smaller.</figcaption>
+<figcaption>Best-of-4 steering of a frozen BC policy as the critic trains. The dashed line is the policy without steering. VaDar helps most on ArrangeTea and ToolHang, less on PreSoakPan.</figcaption>
 </figure>
-<div class="reading">
-<p>We hypothesize that VaDar’s gains come in part from learning a better critic through denser subgoal supervision. To isolate critic quality from policy learning, we fix a behavior-cloned policy and update only the critic.</p>
-<p>Following <a href="https://arxiv.org/abs/2507.07969">Q-chunking</a>, we use best-of-<span data-tex="N"></span> steering: the frozen policy proposes <span data-tex="N"></span> candidate action chunks, and the critic selects the highest-valued candidate. We compare VaDar and Sparse critics trained on the same demonstrations and frozen-policy rollouts. The Sparse critic receives supervision only from final-task rewards.</p>
-<p>With four candidates, the VaDar critic increases ArrangeTea success from 23% to 55% and ToolHang success from 32% to 77%, compared with 23% and 44% for the Sparse critic. Gains on PreSoakPan are smaller. These results support the benefit of subgoal supervision for critic learning independently of policy updates.</p>
-</div>
 <div class="steering-stats">
 <article>
 <p>
@@ -622,7 +508,7 @@
 </strong>
 </div>
 <p>
-       Unsteered policy → VaDar steering
+       No steering → VaDar critic
        <br/>
 <span>
         Sparse critic: 23%
@@ -651,7 +537,7 @@
 </strong>
 </div>
 <p>
-       Unsteered policy → VaDar steering
+       No steering → VaDar critic
        <br/>
 <span>
         Sparse critic: 44%
@@ -659,102 +545,35 @@
 </p>
 </article>
 </div>
-<p class="stat-context">
-     Mean success at 280K critic-training environment steps, with four candidate action chunks (N = 4). The experiment uses three seeds, each evaluated on 96 episodes.
-    </p>
-<div class="reading">
-<p>This steering experiment uses subgoal-completion indicators at inference to compute next-future weights. The policies learned in the main experiments require no such indicators.</p>
-</div>
+<p class="stat-context">Mean success after 280K critic-training steps with N = 4. Three seeds, 96 episodes each.</p>
+<div class="reading"><p>One caveat: steering needs subgoal-completion labels at test time to compute the next-future weights. The policies from our main experiments don't.</p></div>
 </section>
-<section class="section" id="implicit-bellman">
-<div class="reading"><p class="eyebrow">07 / Implicit Bellman backup</p><h2>A hypothetical mechanism: implicit Bellman backup.</h2></div>
-<figure class="wide-figure bellman-figure"><a aria-label="Enlarge the implicit Bellman backup diagram" href="assets/implicit-bellman.png" rel="noopener" target="_blank"><img alt="One state-action transition supervises several subgoal predictions; their TD losses update the same shared critic representation." height="816" loading="lazy" src="assets/implicit-bellman.png" width="792"/></a><figcaption>All-subgoal TD targets update shared critic representations.</figcaption></figure>
+<section class="section" id="beyond">
 <div class="reading">
-<p>The frozen-policy experiments show that subgoal supervision improves action selection independently of policy updates. Together with Last-Q, they motivate a further question: how can intermediate subgoal targets improve value predictions for the final task?</p>
-<p>For a fixed policy, the classical Bellman recursion is</p>
-<div aria-label="The Bellman recursion" class="equation" data-tex="Q^\pi(s,a)=r(s,a)+\gamma\,\mathbb{E}_{s',a'}[Q^\pi(s',a')]"></div>
-<p>With sparse final-task rewards, one-step TD learning propagates the reward signal backward through successive bootstrapped targets. Function approximation can generalize across states, but the final-task reward alone provides little direct supervision for learning representations of intermediate progress.</p>
-<p>VaDar supervises every subgoal prediction at each sampled transition. These targets span multiple temporal resolutions: a state far from task completion may already be close to an intermediate subgoal. We speculate that predicting these nearer outcomes trains useful features before the final-task value is accurate. Because the predictions share network parameters, these features are also available to the final-subgoal prediction.</p>
-<p>We hypothesize that shared representations allow supervision at shorter horizons to inform value prediction at longer horizons. We refer to this proposed mechanism as an <a href="assets/vadar-paper.pdf"><em>implicit Bellman backup</em></a>. The Last-Q comparison provides evidence for this hypothesis: intermediate targets improve learning even though only the final-subgoal value enters policy extraction.</p>
-</div></section><section class="section" id="multi-objective">
-<div class="reading">
-<p class="eyebrow">08 / Multi-objective learning</p>
-<h2>
-      Value disaggregation also supports multi-objective learning.
-     </h2>
+<p class="eyebrow">Beyond long horizon</p>
+<p>The subgoals for value disaggregation need not be subtasks of a long-horizon task.</p>
+<h2>Value disaggregation also supports multi-objective learning</h2>
 </div>
 <figure class="wide-figure">
 <a aria-label="Enlarge PushT trajectories around a red circular obstacle toward a green T-shaped target." href="assets/pusht-environment.png" rel="noopener" target="_blank">
 <img alt="PushT trajectories around a red circular obstacle toward a green T-shaped target." height="819" loading="lazy" src="assets/pusht-environment.png" width="2200"/>
 </a>
-<figcaption>
-<strong>
-       PushT with an obstacle.
-      </strong>
-      The blue pusher moves the T-shaped block toward the green target. Success requires at least 95% block-goal coverage and no obstacle collision during the episode.
-      <a href="assets/pusht-environment.png" rel="noopener" target="_blank">
-       View full size ↗
-      </a>
-</figcaption>
+<figcaption><strong>PushT with an obstacle.</strong> The blue pusher has to move the T onto the green target (at least 95% overlap) without ever touching the obstacle.
+<a href="assets/pusht-environment.png" rel="noopener" target="_blank">View full size ↗</a></figcaption>
 </figure>
-<div class="reading">
-<p>
-      Separate values can also represent different objectives. In this PushT variant, the robot must align a T-shaped block with its target while avoiding a circular obstacle. It receives a sparse task reward and a dense penalty for proximity to the obstacle.
-     </p>
-<p>
-      With a large penalty weight, a critic trained on the summed reward can struggle to learn successful pushing. We compare it with a critic that learns task completion and obstacle avoidance separately.
-     </p>
-</div>
-<div class="reading">
-<h3>
-      Separate critic targets for task completion and safety.
-     </h3>
-<p>
-      VaDar uses SAC with two critic heads, each trained against its own temporal-difference target. The policy uses their weighted sum:
-     </p>
-<div aria-label="The policy objective is task value plus lambda times safety value" class="equation pusht-equation" data-tex="Q_{\mathrm{agg}}=Q_{\mathrm{task}}+\lambda_{\mathrm{safety}}Q_{\mathrm{safety}}"></div>
-<p>
-      These weights stay constant. The safety value predicts the return from the proximity penalty, and λ controls how much it influences the policy. Neither objective is a prerequisite for the other, so this experiment does not use next-future weighting.
-     </p>
-<p>Our comparison method, <strong>Agg-SAC</strong>, sums the same reward components and trains one scalar critic. We match the SAC backbone, network sizes, and training budget. Both methods are pretrained on the obstacle-free task, then fine-tuned for 800,000 environment steps.</p>
-<h3>
-      VaDar is less sensitive to the safety weight.
-     </h3>
-</div>
+<div class="reading"><p>Here the subgoals are two objectives: push the T onto the target, and stay away from the obstacle. VaDar learns one value for each and adds them with a safety weight <span data-tex="\lambda"></span>. Agg-SAC adds the rewards instead and learns a single critic. At small <span data-tex="\lambda"></span> the two do the same. At <span data-tex="\lambda = 5"></span> and <span data-tex="10"></span>, Agg-SAC's success drops to nearly zero, while VaDar keeps learning.</p></div>
 <figure class="wide-figure">
 <a aria-label="Enlarge Success-rate curves for VaDar-multi and Agg-SAC at safety weights 0.1, 1, 5, and 10." href="assets/pusht-results.png" rel="noopener" target="_blank">
 <img alt="Success-rate curves for VaDar-multi and Agg-SAC at safety weights 0.1, 1, 5, and 10." height="474" loading="lazy" src="assets/pusht-results.png" width="2200"/>
 </a>
-<figcaption>
-<strong>
-       Same reward components, different critic targets.
-      </strong>
-      VaDar learns each component value before aggregation. Agg-SAC learns a scalar value from the summed reward. The difference is most pronounced at the larger safety weights.
-      <a href="assets/pusht-results.png" rel="noopener" target="_blank">
-       View full size ↗
-      </a>
-</figcaption>
+<figcaption>Success over training for safety weights 0.1, 1, 5 and 10. VaDar learns a value per objective; Agg-SAC learns one value from the summed reward.
+<a href="assets/pusht-results.png" rel="noopener" target="_blank">View full size ↗</a></figcaption>
 </figure>
 <div class="reading">
-<p>Agg-SAC matches VaDar at small safety weights, but its success falls to nearly zero at λ = 5 or 10. VaDar continues to learn at these larger weights and fluctuates less during training across the sweep.</p>
-</div>
-<div class="reading">
-<p>
-      We conjecture that this improvement arises in part from the critic targets: each VaDar head fits a λ-independent target, while Agg-SAC incorporates λ into its target. VaDar applies the safety weight only when aggregating values for policy extraction.
-     </p>
-</div>
-</section>
-<section class="section" id="scope">
-<div class="reading">
-<p class="eyebrow">09 / Scope and open questions</p>
-<h2>
-      Extensions beyond sequential subgoals.
-     </h2>
-<p>VaDar also supports subgoals arranged in a directed acyclic graph. The training labels need not come from simulator state: on the RoboCasa PreSoakPan task, a vision-language model supplies labels that yield similar final success to oracle labels, with a modest change in sample efficiency.</p>
-<p>VaDar assumes a fixed subgoal structure. Extending the method to continuous or combinatorially large goal spaces, including goals described by images or text, remains open.</p>
-<a class="text-link" download="vadar-paper.pdf" href="assets/vadar-paper.pdf">
-      Download Paper
-     </a>
+<h3>Extensions beyond sequential subgoals</h3>
+<p>The subgoals don't have to be a chain; VaDar also works when they form a directed acyclic graph. The labels don't have to come from the simulator either: on PreSoakPan, VLM labels reach similar final success to oracle labels, with a modest change in sample efficiency.</p>
+<p>VaDar does assume a fixed set of subgoals. Handling continuous or very large goal spaces, like goals given as images or text, is still open.</p>
+<p class="paper-closer">This page covers the main story. For the full method, the theory and the rest of the experiments, read the <a href="https://arxiv.org/pdf/2610.26629">full paper on arXiv ↗</a>.</p>
 </div>
 </section>
 <section class="section citation-section" id="cite">
@@ -769,11 +588,11 @@
        Copy BibTeX
       </button>
 </div>
-<pre id="bibtex">@unpublished{saxena2026vadar,
-  title = {VaDar: Implicit Goal Conditioning via Value Disaggregation},
-  author = {Saxena, Shashwat and Goel, Mehul and Venkataraman, Sreyas and Patil, Sarvesh and Simchowitz, Max},
-  year = {2026},
-  note = {Manuscript}
+<pre id="bibtex">@article{saxena2026vadar,
+  title   = {VaDar: Implicit Goal Conditioning via Value Disaggregation},
+  author  = {Saxena, Shashwat and Goel, Mehul and Venkataraman, Sreyas and Patil, Sarvesh and Simchowitz, Max},
+  journal = {arXiv preprint arXiv:2610.26629},
+  year    = {2026}
 }</pre>
 <p id="copy-status" role="status">
 </p>
