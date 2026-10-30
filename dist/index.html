@@ -107,7 +107,7 @@
 </a>
 <figcaption>VaDar predicts all subgoal values from each transition and trains a single policy on their weighted sum. VaDar uses subgoal information only during training.</figcaption>
 </figure>
-<p class="standfirst">VaDar converts a sparse task reward into per-subgoal rewards, each of which provides signal as soon as its subgoal is completed. So each transition is used to update a shared critic across multiple temporal resolutions. We hypothesize that this enables an implicit Bellman backup (<a href="#analysis">more below</a>). Through careful experiments, we show that VaDar is always competitive with goal-conditioned, dense-reward and sparse-reward baselines, and often much better. As an added benefit, its policy needs no subgoal labels at test time.</p>
+<p class="standfirst">VaDar converts a sparse task reward into per-subgoal rewards, each of which provides signal as soon as its subgoal is completed. So each transition is used to update a shared critic across multiple temporal resolutions. We hypothesize that this enables an implicit Bellman backup in the critic network activations (<a href="#analysis">more below</a>). Through careful experiments, we show that VaDar is always competitive with goal-conditioned, dense-reward and sparse-reward baselines, and often much better. As an added benefit, its policy needs no subgoal labels at test time.</p>
 </section>
 <section class="section" id="intro">
 <div class="reading">
