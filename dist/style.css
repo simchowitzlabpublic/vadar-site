@@ -112,3 +112,6 @@ figcaption{font-size:15px}
 body{font-size:21px}
 figcaption{font-size:16px}
 @media(max-width:580px){body{font-size:18.5px}figcaption{font-size:14.5px}}
+body{font-size:20px}
+figcaption{font-size:15.5px}
+@media(max-width:580px){body{font-size:18px}figcaption{font-size:14px}}
