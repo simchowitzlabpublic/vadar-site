@@ -107,7 +107,7 @@
 </a>
 <figcaption>VaDar predicts all subgoal values from each transition and trains a single policy on their weighted sum. VaDar uses subgoal information only during training.</figcaption>
 </figure>
-<p class="standfirst">VaDar trains a shared critic to predict returns at multiple temporal resolutions, from intermediate subgoals to final-task success. A single policy is trained on these values and needs no subgoal information at deployment.</p>
+<p class="standfirst">VaDar converts a sparse task reward into per-subgoal rewards, each of which provides signal as soon as its subgoal is completed. So each transition is used to update a shared critic across multiple temporal resolutions. We hypothesize that this enables an implicit Bellman backup (<a href="#analysis">more below</a>). Through careful experiments, we show that VaDar is always competitive with goal-conditioned, dense-reward and sparse-reward baselines, and often much better. As an added benefit, its policy needs no subgoal labels at test time.</p>
 </section>
 <section class="section" id="intro">
 <div class="reading">
@@ -163,7 +163,7 @@
 <div class="reading">
 <p class="eyebrow"><a href="#intro">Desideratum 1</a></p>
 <h2>Implicit hierarchical goal conditioning (iHGC)</h2>
-<p>We can remove the subgoal dependence from the policy and keep it only in the critic. We refer to this method as <strong>iHGC</strong> (implicit hierarchical goal conditioning). This satisfies desideratum 1, but the policy is still not aware of future subgoals. In our experiments, iHGC, though more performant than HGC in some cases, <a href="#myopia">falls prey to the same myopia</a> we see in HGC. This brings us to <a href="#desiderata-2">desideratum 2</a>.</p>
+<p>We can take the subgoal out of the policy and keep it only in the critic. We refer to this method as <strong>iHGC</strong> (implicit hierarchical goal conditioning). This satisfies desideratum 1, and in our experiments iHGC already beats HGC in some cases. But the policy is still not aware of future subgoals, and iHGC <a href="#myopia">falls prey to the same myopia</a> we see in HGC. This brings us to <a href="#desiderata-2">desideratum 2</a>.</p>
 </div>
 <div class="rollout-media" id="myopia">
 <div aria-label="Myopia rollouts" class="media-tabs" role="tablist">
@@ -436,7 +436,7 @@
 <p class="demo-note">Each stage is a different moment in the task. The dots are training signals, not robot motion.</p>
 </div>
 <div class="reading">
-<p>So how does VaDar meet both desiderata? The policy only takes the state, so we need subgoal labels only at training time, to compute rewards and weights (<a href="#desiderata-1">desideratum 1</a>). And the policy is trained on the values of future subgoals, so grasping the tool in a way that ruins the next step gets a low score (<a href="#desiderata-2">desideratum 2</a>).</p>
+<p>So how does VaDar meet both desiderata? Every transition trains the critic on every subgoal, so the critic gets far more signal than from the final reward alone (<a href="#desiderata-1">desideratum 1</a>). And the policy is trained on the values of future subgoals, so grasping the tool in a way that ruins the next step gets a low score (<a href="#desiderata-2">desideratum 2</a>). As an added benefit, the policy only takes the state, so it needs no subgoal labels at test time.</p>
 <details class="technical-note"><summary>What happens to finished subgoals?</summary><p>Once a subgoal is done, its value should stop growing, so we clip its TD target. The clipping rule and the extension to subgoals that form a directed acyclic graph are in the paper.</p></details>
 </div>
 </section>
@@ -446,12 +446,17 @@
 <p class="lead-question">Does our method help us reliably learn long-horizon robot manipulation?</p>
 <h2>VaDar improves learning on long-horizon manipulation tasks</h2>
 </div>
+<div class="steering-stats results-stats">
+<article><p>RoboCasa LoadDishwasher</p><div><strong>Only method</strong></div><p>to converge in the OGPO comparison</p></article>
+<article><p>RoboCasa PreSoakPan</p><div><strong>~2×</strong></div><p>the success of the strongest baseline (iHGC)</p></article>
+</div>
 <figure class="wide-figure">
 <a aria-label="Open the full benchmark results" href="assets/results.png" rel="noopener" target="_blank">
 <img alt="Paper learning curves comparing VaDar, goal-conditioned approaches, dense rewards, and sparse rewards across RoboCasa, Robomimic, LIBERO, and OGBench." height="1093" loading="lazy" src="assets/results.png" width="2200"/>
 </a>
 <figcaption>Success rate over environment steps. Solid VaDar is next-future, dotted is current-future. Within a plot, every method uses the same base algorithm.</figcaption>
 </figure><details class="results-rollouts"><summary>Watch VaDar rollouts</summary><div aria-label="Successful rollouts" class="success-gallery policy-gallery"><figure class="success-card"><h3>PreSoakPan</h3><video aria-label="PreSoakPan successful rollout" controls="" muted="" playsinline="" poster="assets/presoakpan-success.jpg" preload="metadata"><source src="assets/presoakpan-success.mp4" type="video/mp4"/></video><label class="video-speed-label">Playback speed <select data-video-speed=""><option selected="" value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label></figure><figure class="success-card"><h3>ArrangeTea</h3><video aria-label="ArrangeTea successful trained-policy rollout" controls="" muted="" playsinline="" poster="assets/arrangetea-policy-success.jpg" preload="metadata"><source src="assets/arrangetea-policy-success.mp4" type="video/mp4"/></video><label class="video-speed-label">Playback speed <select data-video-speed=""><option selected="" value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label></figure><figure class="success-card"><h3>ToolHang</h3><video aria-label="ToolHang successful trained-policy rollout" controls="" muted="" playsinline="" poster="assets/toolhang-policy-success.jpg" preload="metadata"><source src="assets/toolhang-policy-success.mp4" type="video/mp4"/></video><label class="video-speed-label">Playback speed <select data-video-speed=""><option selected="" value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label></figure></div></details>
+<div class="reading"><p>We start every method from the same behavior-cloned policy with low success and fine-tune online, using the same base algorithm within each comparison. With OGPO on RoboCasa, VaDar is the only method that converges on LoadDishwasher, and on PreSoakPan it reaches nearly twice the success of the strongest baseline, iHGC. With FQL it learns faster on Transport and ToolHang. On OGBench with SAC it matches the goal-conditioned baselines. Across all of these, VaDar is always competitive with goal conditioning and often better.</p></div>
 </section>
 <section class="section tinted" id="analysis">
 <div class="reading">
@@ -546,7 +551,7 @@
 </article>
 </div>
 <p class="stat-context">Mean success after 280K critic-training steps with N = 4. Three seeds, 96 episodes each.</p>
-<div class="reading"><p>One caveat: steering needs subgoal-completion labels at test time to compute the next-future weights. The policies from our main experiments don't.</p></div>
+<div class="reading"><p>Steering uses subgoal-completion labels at test time to compute the next-future weights.</p></div>
 </section>
 <section class="section" id="beyond">
 <div class="reading">
